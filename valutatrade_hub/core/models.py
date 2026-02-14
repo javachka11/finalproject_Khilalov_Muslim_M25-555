@@ -1,6 +1,8 @@
 from datetime import datetime
 import os
 import hashlib
+from typing import Optional
+
 
 class User:
     """
@@ -237,5 +239,100 @@ class Wallet:
             raise ValueError('На балансе недостаточно средств!')
         
         self._balance -= amount
+
+    
+class Portfolio:
+    """
+    Портфель для управления всеми кошельками одного пользователя.
+    """
+
+    def __init__(self,
+                 user_id: int,
+                 wallets: dict[str, Wallet]) -> None:
+        """
+        Создать портфель.
+        
+        :param user_id: ID пользователя
+        :type user_id: int
+        :param wallets: Словарь кошельков (ключ - код валюты)
+        :type wallets: dict[str, Wallet]
+        """
+
+        self._user_id = user_id
+        self._wallets = wallets
+
+    
+    def add_currency(self, currency_code: str) -> None:
+        """
+        Добавить новый кошелёк (если его ещё нет).
+        
+        :param currency_code: Код валюты
+        :type currency_code: str
+        """
+
+        if currency_code not in self._wallets.keys():
+            self._wallets[currency_code] = Wallet(currency_code)
+        else:
+            print(f'Кошелёк с валютой {currency_code} уже существует в портфеле'
+                  f'пользователя {self._user_id}!')
+    
+    
+    def get_total_value(self, base_currency: str = 'USD') -> float:
+        """
+        Возвращает общую стоимость всех валют пользователя
+        в указанной базовой валюте.
+
+        :param base_currency: Код базовой валюты
+        :type base_currency: str
+        :return: Общая стоимость
+        :rtype: float
+        """
+
+        exchange_rates = {'USD': 1,
+                          'EUR': 0.84,
+                          'RUB': 77.18,
+                          'BTC': 0.000014}
+        
+        total = sum((exchange_rates[base_currency] / exchange_rates[cur])*
+                         self._wallets[cur].balance for cur in self._wallets.keys())
+        
+        return total
+
+
+    @property
+    def user_id(self) -> int:
+        """
+        Геттер.
+        
+        :return: ID пользователя
+        :rtype: int
+        """
+
+        return self._user_id
+    
+    @property
+    def wallets(self) -> dict[str, Wallet]:
+        """
+        Геттер.
+        
+        :return: Копия словаря кошельков
+        :rtype: dict[str, Wallet]
+        """
+
+        return self._wallets.copy()
+    
+    
+    def get_wallet(self, currency_code: str) -> Optional[Wallet]:
+        """
+        Получить кошелёк по коду валюты.
+        
+        :param currency_code: Код валюты
+        :type currency_code: str
+        :return: Кошелёк (или None при его отсутствии)
+        :rtype: Wallet | None
+        """
+
+        return self._wallets.get(currency_code)
+    
 
     
