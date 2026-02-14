@@ -14,7 +14,7 @@ class User:
                  salt: str,
                  registration_date: datetime) -> None:
         """
-        Регистрирует пользователя в системе.
+        Зарегистрировать пользователя в системе.
         
         :param user_id: ID
         :type user_id: int
@@ -43,8 +43,7 @@ class User:
         :rtype: str
         """
 
-        info = "Информация о пользователе:\n"
-        info += f"ID: {self._user_id}\n"
+        info = f"ID: {self._user_id}\n"
         info += f"Имя: {self._username}\n"
         info += f"Дата регистрации: {self._registration_date}\n"
         return info
@@ -59,7 +58,7 @@ class User:
         """
 
         if not isinstance(new_password, str):
-            raise TypeError('Пароль должен быть строкой!')
+            raise TypeError('Некорректный тип данных для пароля!')
         
         if len(new_password) < 4:
             raise ValueError('Пароль не должен быть короче 4 символов!')
@@ -69,6 +68,21 @@ class User:
 
         self._hashed_password = hashlib.sha256(new_hashed_password).hexdigest()
         self._salt = new_salt.hex()
+
+
+    def verify_password(self, password: str) -> bool:
+        """
+        Проверить введённый пароль на совпадение.
+        
+        :param password: Введённый пароль
+        :type password: str
+        :return: Флаг верификации пароля
+        :rtype: bool
+        """
+
+        verified = hashlib.sha256((password + self._salt).encode('utf-8'))\
+            .hexdigest() == self._hashed_password
+        return verified
     
 
     @property
@@ -98,14 +112,14 @@ class User:
     @username.setter
     def username(self, new_name: str) -> None:
         """
-        Сеттер, вызывается при смене имени.
+        Сеттер для имени.
         
         :param new_name: Новое имя
         :type new_name: str
         """
 
         if not isinstance(new_name, str):
-            raise TypeError('Имя пользователя должно быть строкой!')
+            raise TypeError('Некорректный тип данных для имени пользователя!')
         
         if not new_name:
             raise ValueError('Имя пользователя не может быть пустым!')
@@ -124,4 +138,104 @@ class User:
 
         return self._registration_date
     
+
+class Wallet:
+    """
+    Кошелёк пользователя для одной конкретной валюты.
+    """
+
+    def __init__(self,
+                 currency_code: str,
+                 balance: float = 0.0) -> None:
+        """
+        Создать кошелёк.
+        
+        :param currency_code: Код валюты
+        :type currency_code: str
+        :param balance: Баланс в данной валюте
+        :type balance: float
+        """
+
+        self.currency_code = currency_code
+        self._balance = balance
+
+
+    def deposit(self, amount: float) -> None:
+        """
+        Пополнить баланс.
+        
+        :param amount: Сумма пополнения
+        :type amount: float
+        """
+
+        if not isinstance(amount, (int, float)):
+            raise TypeError('Некорректный тип данных для суммы пополнения баланса!')
+        
+        if amount <= 0:
+            raise ValueError('Сумма пополнения баланса должна быть больше нуля!')
+        
+        self._balance += amount
+
+
+    def get_balance_info(self) -> str:
+        """
+        Получить информацию о текущем балансе.
+        
+        :return: Строка с текущим балансом и кодом его валюты
+        :rtype: str
+        """
+
+        info = f"Текущий баланс: {self._balance:.2f} {self.currency_code}"
+        return info
+        
+
+    @property
+    def balance(self) -> float:
+        """
+        Геттер.
+        
+        :return: Текущий баланс
+        :rtype: float
+        """
+
+        return self._balance
+    
+
+    @balance.setter
+    def balance(self, new_balance: float) -> None:
+        """
+        Сеттер для баланса.
+        
+        :param new_balance: Новый баланс
+        :type new_balance: float
+        """
+
+        if not isinstance(new_balance, (int, float)):
+            raise TypeError('Некорректный тип данных для баланса!')
+        
+        if new_balance < 0:
+            raise ValueError('Баланс не может быть отрицательным!')
+        
+        self._balance = new_balance
+
+
+    def withdraw(self, amount: float) -> None:
+        """
+        Снять средства с баланса (если он позволяет).
+        
+        :param amount: Сумма снятия
+        :type amount: float
+        """
+
+        if not isinstance(amount, (int, float)):
+            raise TypeError('Некорректный тип данных для суммы снятия баланса!')
+        
+        if amount <= 0:
+            raise ValueError('Сумма снятия баланса должна быть больше нуля!')
+        
+        if amount > self._balance:
+            raise ValueError('На балансе недостаточно средств!')
+        
+        self._balance -= amount
+
     
