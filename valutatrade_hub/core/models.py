@@ -65,11 +65,11 @@ class User:
         if len(new_password) < 4:
             raise ValueError('Пароль не должен быть короче 4 символов!')
         
-        new_salt = os.urandom(8)
-        new_hashed_password = new_password.encode('utf-8') + new_salt
+        new_salt = os.urandom(8).hex()
+        new_hashed_password = (new_password + new_salt).encode('utf-8')
 
         self._hashed_password = hashlib.sha256(new_hashed_password).hexdigest()
-        self._salt = new_salt.hex()
+        self._salt = new_salt
 
 
     def verify_password(self, password: str) -> bool:
@@ -335,4 +335,3 @@ class Portfolio:
         return self._wallets.get(currency_code)
     
 
-    

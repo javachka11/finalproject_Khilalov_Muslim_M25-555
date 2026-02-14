@@ -1,17 +1,25 @@
 import shlex
-from valutatrade_hub.core.usecases import register
+from valutatrade_hub.core.usecases import register, login
 
 def run():
+    logged_username = None
     while True:
-        command = input('> ')
+        if logged_username is None:
+            command = input('\n> ')
+        else:
+            command = input(f'\n{logged_username}> ')
 
-        sh = shlex.shlex(command, punctuation_chars='=()')
+
+        sh = shlex.shlex(command)
+        sh.wordchars += '-'
         args = list(sh)
 
         match args:
             case ['register', '--username', username, '--password', password]:
                 register(username, password)
-            case ['quit']:
+            case ['login', '--username', username, '--password', password]:
+                logged_username = login(username, password)
+            case ['quit'|'exit']:
                 return None
             case _:
                 print('Некорректная команда!')

@@ -12,8 +12,9 @@ def load_users() -> list[dict]:
     :return: Список словарей пользователей
     :rtype: list[dict[Any, Any]]
     """
-
+    
     filepath = os.path.join(DATA_DIR, 'users.json')
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
     fp = None
     try:
@@ -43,6 +44,7 @@ def load_portfolios() -> list[dict]:
     """
 
     filepath = os.path.join(DATA_DIR, 'portfolios.json')
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
     fp = None
     try:
