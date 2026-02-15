@@ -1,5 +1,5 @@
 import shlex
-from valutatrade_hub.core.usecases import register, login
+from valutatrade_hub.core.usecases import register, login, show_portfolio
 
 def run():
     logged_username = None
@@ -19,6 +19,10 @@ def run():
                 register(username, password)
             case ['login', '--username', username, '--password', password]:
                 logged_username = login(username, password)
+            case ['show-portfolio', '--base', currency]:
+                show_portfolio(logged_username, currency)
+            case ['show-portfolio']:
+                show_portfolio(logged_username)
             case ['quit'|'exit']:
                 return None
             case _:

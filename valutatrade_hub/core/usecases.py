@@ -1,7 +1,7 @@
 import os
 import hashlib
 from datetime import datetime
-from valutatrade_hub.core.utils import load_users, save_users, load_portfolios, save_portfolios
+from valutatrade_hub.core.utils import load_users, save_users, load_portfolios, save_portfolios, load_rates
 from typing import Optional
 
 
@@ -79,3 +79,46 @@ def login(username: str, password: str) -> Optional[str]:
     return None
 
 
+def show_portfolio(logged_name: str, base_currency: str = 'USD') -> None:
+    """
+    Показать все кошельки и итоговую стоимость в базовой валюте.
+    
+    :param logged_name: Имя пользователя
+    :type logged_name: str
+    :param base_currency: Базовая валюта
+    :type base_currency: str
+    """
+
+    if logged_name is None:
+        print('Сначала выполните login!')
+        return None
+    
+    users = load_users()
+
+    for user in users:
+        if user['username'] == logged_name:
+            user_id = user['user_id']
+            break
+
+    porfolios = load_portfolios()
+    for portfolio in porfolios:
+        if portfolio['user_id'] == user_id:
+            if not portfolio['wallets']:
+                print('Портфель пуст!')
+                return None
+            wallets = portfolio['wallets']
+            break
+    
+    rates = load_rates()
+    info = f"Портфель пользователя '{logged_name}' (база: {base_currency}):\n"
+    for cur in wallets.keys():
+        exchange = rates.get(f'{cur}_{base_currency}')
+        if exchange is None:
+            print(f"Неизвестная базовая валюта '{base_currency}'")
+            return None
+        base_balance = exchange['rate']*wallets[cur]['balance']
+        info += f"- {cur}: {wallets[cur]['balance']}  → {base_balance} {base_currency}\n"
+        total += base_balance
+    info += "---------------------------------\n"
+    info += f"ИТОГО: {total} {base_currency}"
+    print(info)
