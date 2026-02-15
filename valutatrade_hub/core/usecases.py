@@ -118,17 +118,84 @@ def show_portfolio(logged_name: str, base_currency: str = 'USD') -> None:
         if exchange_rate is None:
             return None
         base_balance = exchange_rate*wallets[cur]['balance']
-        info += f"- {cur}: {wallets[cur]['balance']}  → "
-        info += f"{base_balance} {base_currency}\n"
+        info += f"- {cur}: {wallets[cur]['balance']:12.8f}  →  "
+        info += f"{base_balance:12.8f} {base_currency}\n"
         total += base_balance
     info += "---------------------------------\n"
-    info += f"ИТОГО: {total} {base_currency}"
+    info += f"ИТОГО: {total:.8f} {base_currency}"
     print(info)
+
+
+def buy(logged_name: str, currency: str, amount: float) -> None:
+    """
+    Купить валюту.
+    
+    :param logged_name: Имя пользователя
+    :type logged_name: str
+    :param currency: Код валюты
+    :type currency: str
+    :param amount: Количество валюты
+    :type amount: float
+    """
+
+    if logged_name is None:
+        print('Сначала выполните login!')
+        return None
+    
+    if not currency:
+        print('Ошибка валидации: код валюты пуст!')
+        return None
+
+    if not currency.isupper():
+        print('Ошибка валидации: код валюты должен состоять из заглавных букв!')
+        return None
+    
+    try:
+        amount = float(amount)
+    except ValueError:
+        print('Ошибка валидации: количество валюты должно быть вещественным числом!')
+        return None
+    
+    if amount <= 0:
+        print('Ошибка валидации: количество валюты должно быть положительным числом!')
+        return None
+    
+    users = load_users()
+
+    for user in users:
+        if user['username'] == logged_name:
+            user_obj = user
+            break
+
+    porfolios = load_portfolios()
+    for portfolio in porfolios:
+        if portfolio['user_id'] == user_obj['user_id']:
+            portfolio_obj = portfolio
+            break
+    
+    exchange_rate = get_rate(currency, 'USD')
+    if exchange_rate is None:
+        return None
+    
+    if exchange_rate*amount > portfolio_obj['wallets']['USD']['balance']:
+        print("На кошельке 'USD' не хватает средств, для покупки валюты!")
+        return None
+
+    if currency not in portfolio_obj['wallets'].keys():
+        portfolio_obj['wallets'][currency] = dict(currency_code=currency,
+                                              balance=amount)
+    else:
+        portfolio_obj['wallets'][currency]['balance'] += amount
+    
+    portfolio_obj['wallets']['USD']['balance'] -= exchange_rate*amount
+
+    save_portfolios(porfolios)
 
 
 def get_rate(from_currency: str,
              to_currency: str,
-             rates: Optional[dict] = None) -> Optional[float]:
+             rates: Optional[dict] = None,
+             display: bool = False) -> Optional[float]:
     """
     Получить текущий курс одной валюты к другой.
     
@@ -138,6 +205,8 @@ def get_rate(from_currency: str,
     :type to_currency: str
     :param rates: Словарь курсов (чтобы не подгружать каждый раз)
     :type rates: Optional[dict]
+    :param display: Выводить ли информацию в консоль
+    :type display: bool
     :return: Текущий курс
     :rtype: float | None
     """
@@ -161,12 +230,12 @@ def get_rate(from_currency: str,
         print(f"Курс {from_currency}→{to_currency} недоступен. "
               "Повторите попытку позже.")
         return None
-    info = f"Курс {from_currency}→{to_currency}: {exchange['rate']} "
-    info += f"(обновлено: {exchange['updated_at'].strftime('%Y-%m-%d %H:%M:%S')})\n"
-    info += f"Обратный курс {to_currency}→{from_currency}: {1/exchange['rate']}"
-    print(info)
+    
+    if display:
+        info = f"Курс {from_currency}→{to_currency}: {exchange['rate']:.8f} "
+        info += f"(обновлено: {datetime.fromisoformat(exchange['updated_at'])})\n"
+        info += f"Обратный курс {to_currency}→{from_currency}: {1/exchange['rate']:.8f}"
+        print(info)
 
     return exchange['rate']
-    
-
     
