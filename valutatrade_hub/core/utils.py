@@ -65,12 +65,12 @@ def save_portfolios(data: list[dict]) -> None:
         json.dump(data, fp, indent=4)
 
 
-def load_rates():
+def load_rates() -> dict:
     """
     Загрузить текущие курсы.
     
     :return: Словарь курсов
-    :rtype: list[dict[Any, Any]]
+    :rtype: dict[Any, Any]
     """
     
     filepath = os.path.join(DATA_DIR, 'rates.json')
@@ -87,3 +87,4 @@ def load_rates():
         if fp is not None:
             fp.close()
     return rates
+

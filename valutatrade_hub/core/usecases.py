@@ -41,7 +41,8 @@ def register(username: str, password: str) -> None:
     
     portfolios = load_portfolios()
     portfolios.append({'user_id': user_id,
-                       'wallets': dict()})
+                       'wallets': dict(USD=dict(currency_code='USD',
+                                                balance=100))})
     save_portfolios(portfolios)
     
     hidden_password = '*'*len(password)
@@ -110,15 +111,62 @@ def show_portfolio(logged_name: str, base_currency: str = 'USD') -> None:
             break
     
     rates = load_rates()
+    total = 0
     info = f"Портфель пользователя '{logged_name}' (база: {base_currency}):\n"
     for cur in wallets.keys():
-        exchange = rates.get(f'{cur}_{base_currency}')
-        if exchange is None:
-            print(f"Неизвестная базовая валюта '{base_currency}'")
+        exchange_rate = get_rate(cur, base_currency, rates)
+        if exchange_rate is None:
             return None
-        base_balance = exchange['rate']*wallets[cur]['balance']
-        info += f"- {cur}: {wallets[cur]['balance']}  → {base_balance} {base_currency}\n"
+        base_balance = exchange_rate*wallets[cur]['balance']
+        info += f"- {cur}: {wallets[cur]['balance']}  → "
+        info += f"{base_balance} {base_currency}\n"
         total += base_balance
     info += "---------------------------------\n"
     info += f"ИТОГО: {total} {base_currency}"
     print(info)
+
+
+def get_rate(from_currency: str,
+             to_currency: str,
+             rates: Optional[dict] = None) -> Optional[float]:
+    """
+    Получить текущий курс одной валюты к другой.
+    
+    :param from_currency: Исходная валюта
+    :type from_currency: str
+    :param to_currency: Целевая валюта
+    :type to_currency: str
+    :param rates: Словарь курсов (чтобы не подгружать каждый раз)
+    :type rates: Optional[dict]
+    :return: Текущий курс
+    :rtype: float | None
+    """
+
+    if not from_currency or not to_currency:
+        print('Ошибка валидации: код валюты пуст!')
+        return None
+
+    if not from_currency.isupper() or not to_currency.isupper():
+        print('Ошибка валидации: код валюты должен состоять из заглавных букв!')
+        return None
+    
+    if from_currency == to_currency:
+        return 1
+
+    if rates is None:
+        rates = load_rates()
+    
+    exchange = rates.get(f'{from_currency}_{to_currency}')
+    if exchange is None:
+        print(f"Курс {from_currency}→{to_currency} недоступен. "
+              "Повторите попытку позже.")
+        return None
+    info = f"Курс {from_currency}→{to_currency}: {exchange['rate']} "
+    info += f"(обновлено: {exchange['updated_at'].strftime('%Y-%m-%d %H:%M:%S')})\n"
+    info += f"Обратный курс {to_currency}→{from_currency}: {1/exchange['rate']}"
+    print(info)
+
+    return exchange['rate']
+    
+
+    
