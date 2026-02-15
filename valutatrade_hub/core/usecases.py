@@ -1,8 +1,15 @@
-import os
 import hashlib
+import os
 from datetime import datetime
-from valutatrade_hub.core.utils import load_users, save_users, load_portfolios, save_portfolios, load_rates
 from typing import Optional
+
+from valutatrade_hub.core.utils import (
+    load_portfolios,
+    load_rates,
+    load_users,
+    save_portfolios,
+    save_users,
+)
 
 
 def register(username: str, password: str) -> None:
@@ -182,14 +189,103 @@ def buy(logged_name: str, currency: str, amount: float) -> None:
         return None
 
     if currency not in portfolio_obj['wallets'].keys():
+        prev_balance = 0
         portfolio_obj['wallets'][currency] = dict(currency_code=currency,
-                                              balance=amount)
+                                                  balance=amount)
     else:
+        prev_balance = portfolio_obj['wallets'][currency]['balance']
         portfolio_obj['wallets'][currency]['balance'] += amount
+
     
     portfolio_obj['wallets']['USD']['balance'] -= exchange_rate*amount
 
+    info = f"Покупка выполнена: {amount:.8f} {currency} по курсу {exchange_rate:.8f} "
+    info += f"{currency} -> USD\n"
+    info += "Изменения в портфеле:\n"
+    info += f"- {currency}: было {prev_balance:.8f} → "
+    info += f"стало {portfolio_obj['wallets'][currency]['balance']:.8f}\n"
+    info += f"Оценочная стоимость покупки: {exchange_rate*amount:.8f} USD"
+    print(info)
+
     save_portfolios(porfolios)
+
+
+def sell(logged_name: str, currency: str, amount: float) -> None:
+    """
+    Продать валюту.
+    
+    :param logged_name: Имя пользователя
+    :type logged_name: str
+    :param currency: Код валюты
+    :type currency: str
+    :param amount: Количество валюты
+    :type amount: float
+    """
+
+    if logged_name is None:
+        print('Сначала выполните login!')
+        return None
+    
+    if not currency:
+        print('Ошибка валидации: код валюты пуст!')
+        return None
+
+    if not currency.isupper():
+        print('Ошибка валидации: код валюты должен состоять из заглавных букв!')
+        return None
+    
+    try:
+        amount = float(amount)
+    except ValueError:
+        print('Ошибка валидации: количество валюты должно быть вещественным числом!')
+        return None
+    
+    if amount <= 0:
+        print('Ошибка валидации: количество валюты должно быть положительным числом!')
+        return None
+    
+    users = load_users()
+
+    for user in users:
+        if user['username'] == logged_name:
+            user_obj = user
+            break
+
+    porfolios = load_portfolios()
+    for portfolio in porfolios:
+        if portfolio['user_id'] == user_obj['user_id']:
+            portfolio_obj = portfolio
+            break
+    
+    exchange_rate = get_rate(currency, 'USD')
+    if exchange_rate is None:
+        return None
+
+    if currency not in portfolio_obj['wallets'].keys():
+        print(f"У вас нет кошелька '{currency}'. Добавьте валюту: "
+              "она создаётся автоматически при первой покупке.")
+        return None
+    
+    if amount > portfolio_obj['wallets'][currency]['balance']:
+        print(f"Недостаточно средств: доступно "
+              f"{portfolio_obj['wallets'][currency]['balance']} {currency}, "
+              f"требуется {amount} {currency}!")
+        return None
+    
+    prev_balance = portfolio_obj['wallets'][currency]['balance']
+    portfolio_obj['wallets'][currency]['balance'] -= amount
+    portfolio_obj['wallets']['USD']['balance'] += exchange_rate*amount
+
+    info = f"Продажа выполнена: {amount:.8f} {currency} по курсу {exchange_rate:.8f} "
+    info += f"{currency} -> USD\n"
+    info += "Изменения в портфеле:\n"
+    info += f"- {currency}: было {prev_balance:.8f} → "
+    info += f"стало {portfolio_obj['wallets'][currency]['balance']:.8f}\n"
+    info += f"Оценочная выручка: {exchange_rate*amount:.8f} USD"
+    print(info)
+    
+    save_portfolios(porfolios)
+    
 
 
 def get_rate(from_currency: str,
