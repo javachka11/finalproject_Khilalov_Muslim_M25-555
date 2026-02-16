@@ -15,8 +15,9 @@
 |`buy` `--currency` `<код_валюты>` `--amount` `<количество_валюты>`|Купить валюту|
 |`sell` `--currency` `<код_валюты>` `--amount` `<количество_валюты>`|Продать валюту|
 |`get-rate` `--from` `<исходная_валюта>` `--to` `<целевая_валюта>`|Отобразить текущий курс валюты|
-|`help`\|`info`|Отобразить справку|
-|`quit`\|`exit`|Выйти из программы|
+|`info`|Отобразить справку|
+|`help` `<команда>`|Отобразить справку для команды|
+|`quit`|Выйти из программы|
 
 
 #### Пример работы с платформой:
@@ -60,8 +61,7 @@
 ИТОГО: 100.00000000 USD
 </pre>
 
-<pre>john&gt; help
-***Интерфейс платформы:***
+<pre>john&gt; info
 &lt;command&gt; register --username &lt;имя&gt; --password &lt;пароль&gt; - зарегистрировать пользователя
 &lt;command&gt; login --username &lt;имя&gt; --password &lt;пароль&gt; - залогиниться под конкретным пользователем
 &lt;command&gt; show-portfolio - отобразить портфель пользователя (в долларах)
@@ -69,9 +69,9 @@
 &lt;command&gt; buy --currency &lt;код_валюты&gt; --amount &lt;количество_валюты&gt; - купить валюту
 &lt;command&gt; sell --currency &lt;код_валюты&gt; --amount &lt;количество_валюты&gt; - продать валюту
 &lt;command&gt; get-rate --from &lt;исх_валюта&gt; --to &lt;цел_валюта&gt; - получить текущий курс валюты
-&lt;command&gt; help|info - отобразить справку
-&lt;command&gt; quit|exit - выйти из программы
-</pre>
+&lt;command&gt; info - отобразить справку
+&lt;command&gt; help &lt;команда&gt; - отобразить справку для команды
+&lt;command&gt; quit - выйти из программы</pre>
 
 
 
