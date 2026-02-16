@@ -3,7 +3,7 @@ from valutatrade_hub.cli.interface import run
 
 
 def main():
-    print("My Wallet is working!")
+    print("Платформа для отслеживания и симуляции торговли валютами")
     run()
 
 if __name__ == '__main__':

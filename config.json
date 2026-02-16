@@ -1,0 +1,6 @@
+{
+    "data_path": "data/",
+    "rates_ttl_seconds": 300,
+    "log_format": "string",
+    "log_path": "logs/"
+}
