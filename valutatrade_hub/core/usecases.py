@@ -1,6 +1,6 @@
 import hashlib
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from valutatrade_hub.core.exceptions import (
@@ -13,6 +13,7 @@ from valutatrade_hub.core.utils import (
     save_portfolios,
     save_users,
 )
+from valutatrade_hub.infra.settings import config
 
 
 def register(username: str, password: str) -> None:
@@ -25,7 +26,7 @@ def register(username: str, password: str) -> None:
     :type password: str
     """
 
-    users = load_users()
+    users = load_users(config.get('data_path', 'data/'))
     for user in users:
         if user['username'] == username:
             print(f"Имя пользователя '{username}' уже занято!")
@@ -46,13 +47,13 @@ def register(username: str, password: str) -> None:
                   'salt': salt,
                   'registration_date': datetime.now().isoformat()})
     
-    save_users(users)
+    save_users(users, config.get('data_path', 'data/'))
     
-    portfolios = load_portfolios()
+    portfolios = load_portfolios(config.get('data_path', 'data/'))
     portfolios.append({'user_id': user_id,
                        'wallets': dict(USD=dict(currency_code='USD',
                                                 balance=100))})
-    save_portfolios(portfolios)
+    save_portfolios(portfolios, config.get('data_path', 'data/'))
     
     hidden_password = '*'*len(password)
     
@@ -72,7 +73,7 @@ def login(username: str, password: str) -> Optional[str]:
     :rtype: int | None
     """
 
-    users = load_users()
+    users = load_users(config.get('data_path', 'data/'))
     for user in users:
         if user['username'] == username:
             verified = hashlib.sha256((password + user['salt']).encode('utf-8'))\
@@ -103,14 +104,14 @@ def show_portfolio(logged_name: str, base_currency: str = 'USD') -> None:
         print('Сначала выполните login!')
         return None
     
-    users = load_users()
+    users = load_users(config.get('data_path', 'data/'))
 
     for user in users:
         if user['username'] == logged_name:
             user_id = user['user_id']
             break
 
-    porfolios = load_portfolios()
+    porfolios = load_portfolios(config.get('data_path', 'data/'))
     for portfolio in porfolios:
         if portfolio['user_id'] == user_id:
             if not portfolio['wallets']:
@@ -119,7 +120,7 @@ def show_portfolio(logged_name: str, base_currency: str = 'USD') -> None:
             wallets = portfolio['wallets']
             break
     
-    rates = load_rates()
+    rates = load_rates(config.get('data_path', 'data/'))
     total = 0
     info = f"Портфель пользователя '{logged_name}' (база: {base_currency}):\n"
     for cur in wallets.keys():
@@ -161,14 +162,14 @@ def buy(logged_name: str, currency: str, amount: float) -> None:
     if amount <= 0:
         raise ValueError('Количество валюты должно быть положительным числом!')
     
-    users = load_users()
+    users = load_users(config.get('data_path', 'data/'))
 
     for user in users:
         if user['username'] == logged_name:
             user_obj = user
             break
 
-    porfolios = load_portfolios()
+    porfolios = load_portfolios(config.get('data_path', 'data/'))
     for portfolio in porfolios:
         if portfolio['user_id'] == user_obj['user_id']:
             portfolio_obj = portfolio
@@ -202,7 +203,7 @@ def buy(logged_name: str, currency: str, amount: float) -> None:
     info += f"Оценочная стоимость покупки: {exchange_rate*amount:.8f} USD"
     print(info)
 
-    save_portfolios(porfolios)
+    save_portfolios(porfolios, config.get('data_path', 'data/'))
 
 
 def sell(logged_name: str, currency: str, amount: float) -> None:
@@ -232,14 +233,14 @@ def sell(logged_name: str, currency: str, amount: float) -> None:
     if amount <= 0:
         raise ValueError('Количество валюты должно быть положительным числом!')
     
-    users = load_users()
+    users = load_users(config.get('data_path', 'data/'))
 
     for user in users:
         if user['username'] == logged_name:
             user_obj = user
             break
 
-    porfolios = load_portfolios()
+    porfolios = load_portfolios(config.get('data_path', 'data/'))
     for portfolio in porfolios:
         if portfolio['user_id'] == user_obj['user_id']:
             portfolio_obj = portfolio
@@ -271,7 +272,7 @@ def sell(logged_name: str, currency: str, amount: float) -> None:
     info += f"Оценочная выручка: {exchange_rate*amount:.8f} USD"
     print(info)
     
-    save_portfolios(porfolios)
+    save_portfolios(porfolios, config.get('data_path', 'data/'))
     
 
 
@@ -305,13 +306,18 @@ def get_rate(from_currency: str,
         return 1
 
     if rates is None:
-        rates = load_rates()
+        rates = load_rates(config.get('data_path', 'data/'))
     
     exchange = rates.get(f'{from_currency}_{to_currency}')
     if exchange is None:
         print(f"Курс {from_currency}→{to_currency} недоступен. "
               "Повторите попытку позже.")
         return None
+    if (exchange['updated_at'] < 
+        (datetime.now() - timedelta(seconds=config.get('rates_ttl_seconds', 300)))):
+        now_rate = exchange['rate']
+    else:
+        now_rate = exchange['rate']
     
     if display:
         info = f"Курс {from_currency}→{to_currency}: {exchange['rate']:.8f} "
@@ -319,5 +325,5 @@ def get_rate(from_currency: str,
         info += f"Обратный курс {to_currency}→{from_currency}: {1/exchange['rate']:.8f}"
         print(info)
 
-    return exchange['rate']
+    return now_rate
     
