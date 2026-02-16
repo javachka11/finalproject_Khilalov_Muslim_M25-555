@@ -76,9 +76,9 @@ def run():
                 case ['show-portfolio']:
                     show_portfolio(logged_username)
                 case ['buy', '--currency', currency, '--amount', amount]:
-                    buy(logged_username, currency, amount)
+                    buy(logged_username, currency, float(amount))
                 case ['sell', '--currency', currency, '--amount', amount]:
-                    sell(logged_username, currency, amount)
+                    sell(logged_username, currency, float(amount))
                 case ['get-rate', '--from', from_currency, '--to', to_currency]:
                     get_rate(from_currency, to_currency, None, True)
                 case ['info']:

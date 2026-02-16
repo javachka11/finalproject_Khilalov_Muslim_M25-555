@@ -158,7 +158,6 @@ def buy(logged_name: Optional[str], currency: str, amount: float) -> None:
     if not currency.isupper():
         raise ValueError('Код валюты должен состоять из заглавных букв!')
     
-    amount = float(amount)
     if amount <= 0:
         raise ValueError('Количество валюты должно быть положительным числом!')
     
@@ -227,8 +226,6 @@ def sell(logged_name: Optional[str], currency: str, amount: float) -> None:
 
     if not currency.isupper():
         raise ValueError('Код валюты должен состоять из заглавных букв!')
-    
-    amount = float(amount)
     
     if amount <= 0:
         raise ValueError('Количество валюты должно быть положительным числом!')
