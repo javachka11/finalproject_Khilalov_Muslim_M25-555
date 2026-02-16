@@ -1,5 +1,8 @@
-from typing import Optional, Any
 import json
+from typing import (
+    Any,
+    Optional,
+)
 
 
 class SettingsLoader:
@@ -43,7 +46,7 @@ class SettingsLoader:
                             'log_path': 'logs/'}
             
         else:
-            self.config_ = json.load(fp)
+            self._config = json.load(fp)
         finally:
             if fp is not None:
                 fp.close()

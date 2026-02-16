@@ -90,7 +90,7 @@ def login(username: str, password: str) -> Optional[str]:
     return None
 
 
-def show_portfolio(logged_name: str, base_currency: str = 'USD') -> None:
+def show_portfolio(logged_name: Optional[str], base_currency: str = 'USD') -> None:
     """
     Показать все кошельки и итоговую стоимость в базовой валюте.
     
@@ -136,7 +136,7 @@ def show_portfolio(logged_name: str, base_currency: str = 'USD') -> None:
     print(info)
 
 
-def buy(logged_name: str, currency: str, amount: float) -> None:
+def buy(logged_name: Optional[str], currency: str, amount: float) -> None:
     """
     Купить валюту.
     
@@ -206,7 +206,7 @@ def buy(logged_name: str, currency: str, amount: float) -> None:
     save_portfolios(porfolios, config.get('data_path', 'data/'))
 
 
-def sell(logged_name: str, currency: str, amount: float) -> None:
+def sell(logged_name: Optional[str], currency: str, amount: float) -> None:
     """
     Продать валюту.
     
@@ -313,7 +313,7 @@ def get_rate(from_currency: str,
         print(f"Курс {from_currency}→{to_currency} недоступен. "
               "Повторите попытку позже.")
         return None
-    if (exchange['updated_at'] < 
+    if (datetime.fromisoformat(exchange['updated_at']) < 
         (datetime.now() - timedelta(seconds=config.get('rates_ttl_seconds', 300)))):
         now_rate = exchange['rate']
     else:
