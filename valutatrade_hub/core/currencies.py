@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+from valutatrade_hub.core.exceptions import CurrencyNotFoundError
+
 
 class Currency(ABC):
     """
@@ -142,7 +144,8 @@ class CryptoCurrency(Currency):
 
         super().__init__(code, name)
         if not isinstance(market_cap, (int, float)):
-            raise ValueError('Капитализация криптовалюты должна быть вещественным числом')
+            raise ValueError('Капитализация криптовалюты должна быть ' \
+            'вещественным числом')
         self._algorithm = algorithm
         self._market_cap = market_cap
 
@@ -195,4 +198,4 @@ def get_currency(code: str) -> Optional[Currency]:
     elif code == 'ETH':
         return CryptoCurrency('ETH', 'Ethereum', 'Ethash', 208687511047)
     else:
-        print('Неверный код валюты!')
+        raise CurrencyNotFoundError(code)

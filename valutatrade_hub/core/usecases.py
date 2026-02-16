@@ -3,6 +3,9 @@ import os
 from datetime import datetime
 from typing import Optional
 
+from valutatrade_hub.core.exceptions import (
+    InsufficientFundsError,
+)
 from valutatrade_hub.core.utils import (
     load_portfolios,
     load_rates,
@@ -29,8 +32,7 @@ def register(username: str, password: str) -> None:
             return None
         
     if len(password) < 4:
-        print('Пароль должен быть не короче 4 символов!')
-        return None
+        raise ValueError('Пароль должен быть не короче 4 символов!')
     
     user_id = max([user['user_id'] for user in users], default=0) + 1
     
@@ -150,22 +152,14 @@ def buy(logged_name: str, currency: str, amount: float) -> None:
         return None
     
     if not currency:
-        print('Ошибка валидации: код валюты пуст!')
-        return None
+        raise ValueError('Код валюты пуст!')
 
     if not currency.isupper():
-        print('Ошибка валидации: код валюты должен состоять из заглавных букв!')
-        return None
+        raise ValueError('Код валюты должен состоять из заглавных букв!')
     
-    try:
-        amount = float(amount)
-    except ValueError:
-        print('Ошибка валидации: количество валюты должно быть вещественным числом!')
-        return None
-    
+    amount = float(amount)
     if amount <= 0:
-        print('Ошибка валидации: количество валюты должно быть положительным числом!')
-        return None
+        raise ValueError('Количество валюты должно быть положительным числом!')
     
     users = load_users()
 
@@ -185,8 +179,9 @@ def buy(logged_name: str, currency: str, amount: float) -> None:
         return None
     
     if exchange_rate*amount > portfolio_obj['wallets']['USD']['balance']:
-        print("На кошельке 'USD' не хватает средств, для покупки валюты!")
-        return None
+        raise InsufficientFundsError(portfolio_obj['wallets']['USD']['balance'],
+                                     exchange_rate*amount,
+                                     'USD')
 
     if currency not in portfolio_obj['wallets'].keys():
         prev_balance = 0
@@ -227,22 +222,15 @@ def sell(logged_name: str, currency: str, amount: float) -> None:
         return None
     
     if not currency:
-        print('Ошибка валидации: код валюты пуст!')
-        return None
+        raise ValueError('Код валюты пуст!')
 
     if not currency.isupper():
-        print('Ошибка валидации: код валюты должен состоять из заглавных букв!')
-        return None
+        raise ValueError('Код валюты должен состоять из заглавных букв!')
     
-    try:
-        amount = float(amount)
-    except ValueError:
-        print('Ошибка валидации: количество валюты должно быть вещественным числом!')
-        return None
+    amount = float(amount)
     
     if amount <= 0:
-        print('Ошибка валидации: количество валюты должно быть положительным числом!')
-        return None
+        raise ValueError('Количество валюты должно быть положительным числом!')
     
     users = load_users()
 
@@ -267,10 +255,9 @@ def sell(logged_name: str, currency: str, amount: float) -> None:
         return None
     
     if amount > portfolio_obj['wallets'][currency]['balance']:
-        print(f"Недостаточно средств: доступно "
-              f"{portfolio_obj['wallets'][currency]['balance']} {currency}, "
-              f"требуется {amount} {currency}!")
-        return None
+        raise InsufficientFundsError(portfolio_obj['wallets'][currency]['balance'],
+                                     amount,
+                                     currency)
     
     prev_balance = portfolio_obj['wallets'][currency]['balance']
     portfolio_obj['wallets'][currency]['balance'] -= amount
@@ -308,13 +295,12 @@ def get_rate(from_currency: str,
     """
 
     if not from_currency or not to_currency:
-        print('Ошибка валидации: код валюты пуст!')
-        return None
+        raise ValueError('Код валюты пуст!')
+
 
     if not from_currency.isupper() or not to_currency.isupper():
-        print('Ошибка валидации: код валюты должен состоять из заглавных букв!')
-        return None
-    
+        raise ValueError('Код валюты должен состоять из заглавных букв!')
+
     if from_currency == to_currency:
         return 1
 
