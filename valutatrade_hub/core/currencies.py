@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from valutatrade_hub.core.exceptions import CurrencyNotFoundError
 
@@ -188,7 +187,16 @@ class CryptoCurrency(Currency):
     
     
 
-def get_currency(code: str) -> Optional[Currency]:
+def get_currency(code: str) -> Currency:
+    """
+    Фабрика для получения валюты по коду.
+    
+    :param code: Код валюты
+    :type code: str
+    :return: Валюта
+    :rtype: Currency
+    """
+
     if code == 'USD':
         return FiatCurrency('USD', 'Us Dollar', 'United States')
     elif code == 'EUR':

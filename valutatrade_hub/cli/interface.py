@@ -13,6 +13,7 @@ from valutatrade_hub.core.usecases import (
     sell,
     show_portfolio,
 )
+from valutatrade_hub.logging_config import run_logging
 
 
 def show_info(key='all'):
@@ -53,6 +54,8 @@ def show_info(key='all'):
 
 def run():
     print('Введите info для отображения интерфейса, quit - для выхода из программы.')
+
+    run_logging()
     logged_username = None
     while True:
         if logged_username is None:
@@ -76,9 +79,29 @@ def run():
                 case ['show-portfolio']:
                     show_portfolio(logged_username)
                 case ['buy', '--currency', currency, '--amount', amount]:
-                    buy(logged_username, currency, float(amount))
+                    result = buy(logged_username, currency, float(amount))
+                    if result is not None:
+                        info = f"Покупка выполнена: {float(amount):.8f} {currency} "\
+                               f"по курсу {result['rate']:.8f} "\
+                               f"{currency} -> USD\n"\
+                               f"Изменения в портфеле:\n"\
+                               f"- {currency}: было {result['before']:.8f} → "\
+                               f"стало {result['now']:.8f}\n"\
+                               f"Оценочная стоимость покупки: "\
+                               f"{result['rate']*float(amount):.8f} USD"
+                        print(info)
                 case ['sell', '--currency', currency, '--amount', amount]:
-                    sell(logged_username, currency, float(amount))
+                    result = sell(logged_username, currency, float(amount))
+                    if result is not None:
+                        info = f"Продажа выполнена: {float(amount):.8f} {currency} "\
+                               f"по курсу {result['rate']:.8f} "\
+                               f"{currency} -> USD\n"\
+                               f"Изменения в портфеле:\n"\
+                               f"- {currency}: было {result['before']:.8f} → "\
+                               f"стало {result['now']:.8f}\n"\
+                               f"Оценочная выручка: "\
+                               f"{result['rate']*float(amount):.8f} USD"
+                        print(info)
                 case ['get-rate', '--from', from_currency, '--to', to_currency]:
                     get_rate(from_currency, to_currency, None, True)
                 case ['info']:
