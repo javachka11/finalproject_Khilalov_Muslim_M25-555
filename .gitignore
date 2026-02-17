@@ -1,5 +1,9 @@
+# Logs
+logs/
+
 # JSON-files
-data/
+users.json
+portfolios.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

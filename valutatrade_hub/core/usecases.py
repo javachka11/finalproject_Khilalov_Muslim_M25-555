@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 from typing import Optional
 
+from valutatrade_hub.core.currencies import get_currency
 from valutatrade_hub.core.exceptions import (
     InsufficientFundsError,
 )
@@ -13,6 +14,7 @@ from valutatrade_hub.core.utils import (
     save_portfolios,
     save_users,
 )
+from valutatrade_hub.decorators import log_action
 from valutatrade_hub.infra.settings import config
 
 
@@ -136,7 +138,10 @@ def show_portfolio(logged_name: Optional[str], base_currency: str = 'USD') -> No
     print(info)
 
 
-def buy(logged_name: Optional[str], currency: str, amount: float) -> None:
+@log_action("BUY", True)
+def buy(logged_name: Optional[str],
+        currency: str,
+        amount: float) -> Optional[dict[str, float]]:
     """
     Купить валюту.
     
@@ -152,13 +157,10 @@ def buy(logged_name: Optional[str], currency: str, amount: float) -> None:
         print('Сначала выполните login!')
         return None
     
-    if not currency:
-        raise ValueError('Код валюты пуст!')
-
-    if not currency.isupper():
-        raise ValueError('Код валюты должен состоять из заглавных букв!')
+    exchange_rate = get_rate(currency, 'USD')
+    if exchange_rate is None:
+        return None
     
-    amount = float(amount)
     if amount <= 0:
         raise ValueError('Количество валюты должно быть положительным числом!')
     
@@ -174,10 +176,6 @@ def buy(logged_name: Optional[str], currency: str, amount: float) -> None:
         if portfolio['user_id'] == user_obj['user_id']:
             portfolio_obj = portfolio
             break
-    
-    exchange_rate = get_rate(currency, 'USD')
-    if exchange_rate is None:
-        return None
     
     if exchange_rate*amount > portfolio_obj['wallets']['USD']['balance']:
         raise InsufficientFundsError(portfolio_obj['wallets']['USD']['balance'],
@@ -195,18 +193,17 @@ def buy(logged_name: Optional[str], currency: str, amount: float) -> None:
     
     portfolio_obj['wallets']['USD']['balance'] -= exchange_rate*amount
 
-    info = f"Покупка выполнена: {amount:.8f} {currency} по курсу {exchange_rate:.8f} "
-    info += f"{currency} -> USD\n"
-    info += "Изменения в портфеле:\n"
-    info += f"- {currency}: было {prev_balance:.8f} → "
-    info += f"стало {portfolio_obj['wallets'][currency]['balance']:.8f}\n"
-    info += f"Оценочная стоимость покупки: {exchange_rate*amount:.8f} USD"
-    print(info)
-
     save_portfolios(porfolios, config.get('data_path', 'data/'))
+    transaction = {'before': prev_balance,
+                   'now': portfolio_obj['wallets'][currency]['balance'],
+                   'rate': exchange_rate}
+    return transaction
 
 
-def sell(logged_name: Optional[str], currency: str, amount: float) -> None:
+@log_action("SELL", True)
+def sell(logged_name: Optional[str],
+         currency: str,
+         amount: float) -> Optional[dict[str, float]]:
     """
     Продать валюту.
     
@@ -222,13 +219,9 @@ def sell(logged_name: Optional[str], currency: str, amount: float) -> None:
         print('Сначала выполните login!')
         return None
     
-    if not currency:
-        raise ValueError('Код валюты пуст!')
-
-    if not currency.isupper():
-        raise ValueError('Код валюты должен состоять из заглавных букв!')
-    
-    amount = float(amount)
+    exchange_rate = get_rate(currency, 'USD')
+    if exchange_rate is None:
+        return None
     
     if amount <= 0:
         raise ValueError('Количество валюты должно быть положительным числом!')
@@ -245,10 +238,6 @@ def sell(logged_name: Optional[str], currency: str, amount: float) -> None:
         if portfolio['user_id'] == user_obj['user_id']:
             portfolio_obj = portfolio
             break
-    
-    exchange_rate = get_rate(currency, 'USD')
-    if exchange_rate is None:
-        return None
 
     if currency not in portfolio_obj['wallets'].keys():
         print(f"У вас нет кошелька '{currency}'. Добавьте валюту: "
@@ -263,17 +252,12 @@ def sell(logged_name: Optional[str], currency: str, amount: float) -> None:
     prev_balance = portfolio_obj['wallets'][currency]['balance']
     portfolio_obj['wallets'][currency]['balance'] -= amount
     portfolio_obj['wallets']['USD']['balance'] += exchange_rate*amount
-
-    info = f"Продажа выполнена: {amount:.8f} {currency} по курсу {exchange_rate:.8f} "
-    info += f"{currency} -> USD\n"
-    info += "Изменения в портфеле:\n"
-    info += f"- {currency}: было {prev_balance:.8f} → "
-    info += f"стало {portfolio_obj['wallets'][currency]['balance']:.8f}\n"
-    info += f"Оценочная выручка: {exchange_rate*amount:.8f} USD"
-    print(info)
     
     save_portfolios(porfolios, config.get('data_path', 'data/'))
-    
+    transaction = {'before': prev_balance,
+                   'now': portfolio_obj['wallets'][currency]['balance'],
+                   'rate': exchange_rate}
+    return transaction
 
 
 def get_rate(from_currency: str,
@@ -298,17 +282,19 @@ def get_rate(from_currency: str,
     if not from_currency or not to_currency:
         raise ValueError('Код валюты пуст!')
 
-
     if not from_currency.isupper() or not to_currency.isupper():
         raise ValueError('Код валюты должен состоять из заглавных букв!')
-
+    
     if from_currency == to_currency:
         return 1
 
     if rates is None:
         rates = load_rates(config.get('data_path', 'data/'))
+
+    FromCurrency = get_currency(from_currency)
+    ToCurrency = get_currency(to_currency)
     
-    exchange = rates.get(f'{from_currency}_{to_currency}')
+    exchange = rates.get(f'{FromCurrency.code}_{ToCurrency.code}')
     if exchange is None:
         print(f"Курс {from_currency}→{to_currency} недоступен. "
               "Повторите попытку позже.")
