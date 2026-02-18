@@ -304,7 +304,8 @@ def get_rate(from_currency: str,
         print(f"Курс {from_currency}→{to_currency} недоступен. "
               "Повторите попытку позже.")
         return None
-    if (datetime.fromisoformat(exchange['updated_at'].replace('Z', '')) < 
+    if (datetime.fromisoformat(rates.get('last_refresh', '2000-01-01T00:00:00Z')\
+                               .replace('Z', '')) < 
         (datetime.now() - timedelta(seconds=config.get('rates_ttl_seconds', 300)))):
         print('Курсы валют устарели! Обновите курсы с помощью команды update-rate.')
         return None
@@ -323,6 +324,13 @@ def get_rate(from_currency: str,
     
 
 def update_rates(source: Optional[str] = None) -> None:
+    """
+    Обновить текущий курс валют.
+    
+    :param source: Тип валют для обновления (crypto или fiat)
+    :type source: Optional[str]
+    """
+
     updater = RatesUpdater()
     updater.run_update(source)
 
@@ -330,6 +338,16 @@ def update_rates(source: Optional[str] = None) -> None:
 def show_rates(currency: Optional[str] = None,
                top: Optional[int] = None,
                base: str = 'USD') -> None:
+    """
+    Отобразить текущий курс валют.
+    
+    :param currency: Код валюты
+    :type currency: Optional[str]
+    :param top: Топ курсов
+    :type top: Optional[int]
+    :param base: Код базовый валюты
+    :type base: str
+    """
     
     if currency is not None and len(currency) == 0:
         raise ValueError("Параметр '--currency' пуст!")

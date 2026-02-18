@@ -18,7 +18,14 @@ from valutatrade_hub.core.usecases import (
 from valutatrade_hub.logging_config import run_logging
 
 
-def show_info(key='all'):
+def show_info(key: str = 'all') -> None:
+    """
+    Отобразить справку.
+    
+    :param key: Название команды для отображения справки
+    :type key: str
+    """
+
     info = dict()
 
     info['register'] = "<command> register --username <имя> --password "\
@@ -27,9 +34,7 @@ def show_info(key='all'):
     info['login'] = "<command> login --username <имя> --password "\
                     "<пароль> - залогиниться под конкретным пользователем"
     
-    info['show-portfolio'] = "<command> show-portfolio - "\
-                             "отобразить портфель пользователя (в долларах)\n"\
-                             "<command> show-portfolio --base <код_валюты> - "\
+    info['show-portfolio'] = "<command> show-portfolio [--base <код_валюты>] - "\
                              "отобразить портфель пользователя (в базовой валюте)"
     
     info['buy'] = "<command> buy --currency <код_валюты> --amount "\
@@ -40,6 +45,11 @@ def show_info(key='all'):
     
     info['get-rate'] = "<command> get-rate --from <исх_валюта> --to "\
                        "<цел_валюта> - получить текущий курс валюты"
+    
+    info['update-rates'] = "<command> update-rates [ctypto|fiat] - обновить курс валют"
+    
+    info['show-rates'] = "<command> show-rates [--currency <код_валюты>] [--top "\
+                         "<топ_курсов>] [--base <баз_валюта>] - отобразить курсы валют"
     
     info['info'] = "<command> info - отобразить справку"
     info['help'] = "<command> help <команда> - отобразить справку для команды"
@@ -55,6 +65,10 @@ def show_info(key='all'):
 
 
 def run():
+    """
+    Интерфейс программы.
+    """
+
     print('Введите info для отображения интерфейса, quit - для выхода из программы.')
 
     run_logging()
