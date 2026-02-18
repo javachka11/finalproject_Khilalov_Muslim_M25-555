@@ -1,0 +1,50 @@
+[
+    {
+        "user_id": 1,
+        "wallets": {
+            "USD": {
+                "currency_code": "USD",
+                "balance": 98.92139999999999
+            },
+            "EUR": {
+                "currency_code": "EUR",
+                "balance": 1.0
+            }
+        }
+    },
+    {
+        "user_id": 2,
+        "wallets": {
+            "USD": {
+                "currency_code": "USD",
+                "balance": 93.79805
+            },
+            "EUR": {
+                "currency_code": "EUR",
+                "balance": 5.75
+            }
+        }
+    },
+    {
+        "user_id": 3,
+        "wallets": {
+            "USD": {
+                "currency_code": "USD",
+                "balance": 90.50832
+            },
+            "EUR": {
+                "currency_code": "EUR",
+                "balance": 8.799999999999999
+            }
+        }
+    },
+    {
+        "user_id": 4,
+        "wallets": {
+            "USD": {
+                "currency_code": "USD",
+                "balance": 100
+            }
+        }
+    }
+]
