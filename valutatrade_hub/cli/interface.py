@@ -12,11 +12,20 @@ from valutatrade_hub.core.usecases import (
     register,
     sell,
     show_portfolio,
+    show_rates,
+    update_rates,
 )
 from valutatrade_hub.logging_config import run_logging
 
 
-def show_info(key='all'):
+def show_info(key: str = 'all') -> None:
+    """
+    Отобразить справку.
+    
+    :param key: Название команды для отображения справки
+    :type key: str
+    """
+
     info = dict()
 
     info['register'] = "<command> register --username <имя> --password "\
@@ -25,9 +34,7 @@ def show_info(key='all'):
     info['login'] = "<command> login --username <имя> --password "\
                     "<пароль> - залогиниться под конкретным пользователем"
     
-    info['show-portfolio'] = "<command> show-portfolio - "\
-                             "отобразить портфель пользователя (в долларах)\n"\
-                             "<command> show-portfolio --base <код_валюты> - "\
+    info['show-portfolio'] = "<command> show-portfolio [--base <код_валюты>] - "\
                              "отобразить портфель пользователя (в базовой валюте)"
     
     info['buy'] = "<command> buy --currency <код_валюты> --amount "\
@@ -38,6 +45,11 @@ def show_info(key='all'):
     
     info['get-rate'] = "<command> get-rate --from <исх_валюта> --to "\
                        "<цел_валюта> - получить текущий курс валюты"
+    
+    info['update-rates'] = "<command> update-rates [ctypto|fiat] - обновить курс валют"
+    
+    info['show-rates'] = "<command> show-rates [--currency <код_валюты>] [--top "\
+                         "<топ_курсов>] [--base <баз_валюта>] - отобразить курсы валют"
     
     info['info'] = "<command> info - отобразить справку"
     info['help'] = "<command> help <команда> - отобразить справку для команды"
@@ -53,6 +65,10 @@ def show_info(key='all'):
 
 
 def run():
+    """
+    Интерфейс программы.
+    """
+
     print('Введите info для отображения интерфейса, quit - для выхода из программы.')
 
     run_logging()
@@ -104,6 +120,38 @@ def run():
                         print(info)
                 case ['get-rate', '--from', from_currency, '--to', to_currency]:
                     get_rate(from_currency, to_currency, None, True)
+                case ['update-rates', 'crypto']:
+                    update_rates('crypto')
+                case ['update-rates', 'fiat']:
+                    update_rates('fiat')
+                case ['update-rates']:
+                    update_rates()
+                case ['show-rates', '--currency', currency,
+                                    '--top', top,
+                                    '--base', base]:
+                    show_rates(currency=currency,
+                               top=int(top),
+                               base=base)
+                case ['show-rates', '--currency', currency,
+                                    '--top', top]:
+                    show_rates(currency=currency,
+                               top=int(top))
+                case ['show-rates', '--currency', currency,
+                                    '--base', base]:
+                    show_rates(currency=currency,
+                               base=base)
+                case ['show-rates', '--top', top,
+                                    '--base', base]:
+                    show_rates(top=int(top),
+                               base=base)
+                case ['show-rates', '--currency', currency]:
+                    show_rates(currency=currency)
+                case ['show-rates', '--top', top]:
+                    show_rates(top=int(top))
+                case ['show-rates', '--base', base]:
+                    show_rates(base=base)
+                case ['show-rates']:
+                    show_rates()
                 case ['info']:
                     show_info()
                 case ['help', command]:
