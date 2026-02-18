@@ -12,6 +12,8 @@ from valutatrade_hub.core.usecases import (
     register,
     sell,
     show_portfolio,
+    show_rates,
+    update_rates,
 )
 from valutatrade_hub.logging_config import run_logging
 
@@ -104,6 +106,38 @@ def run():
                         print(info)
                 case ['get-rate', '--from', from_currency, '--to', to_currency]:
                     get_rate(from_currency, to_currency, None, True)
+                case ['update-rates', 'crypto']:
+                    update_rates('crypto')
+                case ['update-rates', 'fiat']:
+                    update_rates('fiat')
+                case ['update-rates']:
+                    update_rates()
+                case ['show-rates', '--currency', currency,
+                                    '--top', top,
+                                    '--base', base]:
+                    show_rates(currency=currency,
+                               top=int(top),
+                               base=base)
+                case ['show-rates', '--currency', currency,
+                                    '--top', top]:
+                    show_rates(currency=currency,
+                               top=int(top))
+                case ['show-rates', '--currency', currency,
+                                    '--base', base]:
+                    show_rates(currency=currency,
+                               base=base)
+                case ['show-rates', '--top', top,
+                                    '--base', base]:
+                    show_rates(top=int(top),
+                               base=base)
+                case ['show-rates', '--currency', currency]:
+                    show_rates(currency=currency)
+                case ['show-rates', '--top', top]:
+                    show_rates(top=int(top))
+                case ['show-rates', '--base', base]:
+                    show_rates(base=base)
+                case ['show-rates']:
+                    show_rates()
                 case ['info']:
                     show_info()
                 case ['help', command]:

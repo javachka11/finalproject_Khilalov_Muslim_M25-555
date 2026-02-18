@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from valutatrade_hub.core.exceptions import ApiRequestError
@@ -24,7 +25,7 @@ class RatesUpdater:
         self.coingecko = CoinGeckoClient(self.config)
         self.exchangerate = ExchangeRateApiClient(self.config)
     
-        self.storage = RatesStorage(self.config)
+        self.storage = RatesStorage()
 
     
     def run_update(self, source: Optional[str] = None) -> None:
@@ -60,10 +61,13 @@ class RatesUpdater:
                 print(f"ERROR: Failed to fetch from ExchangeRate-API: {e.reason}")
                     
         if all_rates:
-            self.storage.save_rates(all_rates)
-            self.storage.save_exchange_rates(all_rates)
-
             print(f"INFO: Writing {len(all_rates)} rates to data/rates.json...")
+            n_updated = self.storage.save_rates(all_rates)
+            self.storage.save_exchange_rates(all_rates)
+            now = datetime.now().isoformat()
+            print(f"Update successful. Total rates updated: {n_updated}. "
+                  f"Last refresh: {now}")
+            
             return None
         else:
             print("Update completed with errors.")

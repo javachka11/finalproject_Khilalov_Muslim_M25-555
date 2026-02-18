@@ -1,7 +1,8 @@
-import requests
+from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict
-from abc import ABC, abstractmethod
+
+import requests
 
 from valutatrade_hub.core.exceptions import ApiRequestError
 from valutatrade_hub.parser_service.config import ParserConfig
@@ -108,7 +109,7 @@ class ExchangeRateApiClient(BaseApiClient):
             raise ApiRequestError(f"ExchangeRate-API: {e}")
         
         if data.get('result') != 'success':
-            raise ApiRequestError(f"ExchangeRate-API: Попробуйте ещё раз.")
+            raise ApiRequestError("ExchangeRate-API: Попробуйте ещё раз.")
             
         rates = dict()
         last_update = data.get('time_last_update_utc', '')

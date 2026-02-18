@@ -201,9 +201,15 @@ def get_currency(code: str) -> Currency:
         return FiatCurrency('USD', 'Us Dollar', 'United States')
     elif code == 'EUR':
         return FiatCurrency('EUR', 'Euro', 'Eurozone')
+    elif code == 'GBP':
+        return FiatCurrency('GBP', 'British Pound', 'United Kingdom')
+    elif code == 'RUB':
+        return FiatCurrency('RUB', 'Russian Ruble', 'Russia')
     elif code == 'BTC':
-        return CryptoCurrency('BTC', 'Bitcoin', 'SHA-256', 1159299359324.63)
+        return CryptoCurrency('BTC', 'Bitcoin', 'SHA-256', 1159299359325)
     elif code == 'ETH':
         return CryptoCurrency('ETH', 'Ethereum', 'Ethash', 208687511047)
+    elif code == 'SOL':
+        return CryptoCurrency('SOL', 'Solana', 'SHA-256', 48253689284)
     else:
         raise CurrencyNotFoundError(code)

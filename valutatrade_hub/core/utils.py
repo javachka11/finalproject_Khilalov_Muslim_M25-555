@@ -1,7 +1,6 @@
 import json
 import os
 
-DATA_DIR = 'data/'
 
 def load_users(data_path: str) -> list[dict]:
     """
@@ -13,13 +12,13 @@ def load_users(data_path: str) -> list[dict]:
     :rtype: list[dict[Any, Any]]
     """
     
+    os.makedirs(data_path, exist_ok=True)
     filepath = os.path.join(data_path, 'users.json')
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
     fp = None
     try:
         fp = open(filepath, 'r')
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError, ValueError):
         users = []
     else:
         users = json.load(fp)
@@ -54,13 +53,13 @@ def load_portfolios(data_path: str) -> list[dict]:
     :rtype: list[dict[Any, Any]]
     """
 
+    os.makedirs(data_path, exist_ok=True)
     filepath = os.path.join(data_path, 'portfolios.json')
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
     fp = None
     try:
         fp = open(filepath, 'r')
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError, ValueError):
         portfolios = []
     else:
         portfolios = json.load(fp)
@@ -83,30 +82,3 @@ def save_portfolios(data: list[dict], data_path: str) -> None:
     filepath = os.path.join(data_path, 'portfolios.json')
     with open(filepath, 'w') as fp:
         json.dump(data, fp, indent=4)
-
-
-def load_rates(data_path: str) -> dict:
-    """
-    Загрузить текущие курсы.
-    
-    :param data_path: Путь к данным
-    :type data_path: str
-    :return: Словарь курсов
-    :rtype: dict[Any, Any]
-    """
-    
-    filepath = os.path.join(data_path, 'rates.json')
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-
-    fp = None
-    try:
-        fp = open(filepath, 'r')
-    except FileNotFoundError:
-        rates = dict()
-    else:
-        rates = json.load(fp)
-    finally:
-        if fp is not None:
-            fp.close()
-    return rates
-

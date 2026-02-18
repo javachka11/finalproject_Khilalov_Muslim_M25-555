@@ -1,5 +1,5 @@
-import os
 import json
+import os
 from datetime import datetime
 from typing import Any
 
@@ -11,7 +11,7 @@ class RatesStorage:
     Хранилище для курсов валют.
     """
     
-    def __init__(self, config: ParserConfig) -> None:
+    def __init__(self) -> None:
         """
         Инициализировать хранилище.
         
@@ -19,7 +19,7 @@ class RatesStorage:
         :type config: ParserConfig
         """
 
-        self.config = config
+        self.config = ParserConfig()
 
 
     def load_rates(self) -> dict:
@@ -35,7 +35,7 @@ class RatesStorage:
         fp = None
         try:
             fp = open(self.config.RATES_FILE_PATH, 'r')
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError, ValueError):
             rates = dict()
         else:
             rates = json.load(fp)
@@ -58,7 +58,7 @@ class RatesStorage:
         fp = None
         try:
             fp = open(self.config.HISTORY_FILE_PATH, 'r')
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError, ValueError):
             rates = list()
         else:
             rates = json.load(fp)
@@ -77,17 +77,25 @@ class RatesStorage:
         """
 
         current_rates = self.load_rates()
-        rate_pairs = current_rates.get("pairs", {})
+        pairs = current_rates.get('pairs', {})
+        n_updated = 0
 
         for rate_key, rate_value in rates.items():
             rate_record = {'rate': rate_value.get('rate', 0),
                            'updated_at': rate_value.get('timestamp', ''),
                            'source': rate_value.get('source', 'Unknown')}
-        
-            rate_pairs[rate_key] = rate_record
+            
+            if (datetime.fromisoformat(pairs.get(rate_key, {})\
+                                       .get('updated_at', '2000-01-01T00:00:00Z')\
+                                       .replace('Z', '+00:00')) <
+                datetime.fromisoformat(rate_value\
+                                       .get('timestamp', '2000-01-01T00:00:01Z')\
+                                       .replace('Z', '+00:00'))):
+                pairs[rate_key] = rate_record
+                n_updated += 1
         
         current_time = datetime.now().isoformat()
-        data = {'pairs': rate_pairs,
+        data = {'pairs': pairs,
                 'source': 'ParserService',
                 'last_refresh': current_time}
    
@@ -95,8 +103,9 @@ class RatesStorage:
 
         with open(tmp_file, 'w') as fp:
             json.dump(data, fp, indent=4, ensure_ascii=False)
-        
         os.replace(tmp_file, self.config.RATES_FILE_PATH)
+
+        return n_updated
 
     
     def save_exchange_rates(self, rates: dict[str, Any]):
@@ -121,10 +130,10 @@ class RatesStorage:
                     'id': record_id,
                     'from_currency': from_currency,
                     'to_currency': to_currency,
-                    'rate': rates.get('rate', 0),
+                    'rate': rate_value.get('rate', 0),
                     'timestamp': timestamp,
-                    'source': rates.get('source', 'Unknown'),
-                    'meta': rates.get('meta', {})
+                    'source': rate_value.get('source', 'Unknown'),
+                    'meta': rate_value.get('meta', {})
                 }
 
                 if record_id not in history_ids:

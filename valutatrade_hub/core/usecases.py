@@ -9,13 +9,14 @@ from valutatrade_hub.core.exceptions import (
 )
 from valutatrade_hub.core.utils import (
     load_portfolios,
-    load_rates,
     load_users,
     save_portfolios,
     save_users,
 )
 from valutatrade_hub.decorators import log_action
 from valutatrade_hub.infra.settings import config
+from valutatrade_hub.parser_service.storage import RatesStorage
+from valutatrade_hub.parser_service.updater import RatesUpdater
 
 
 def register(username: str, password: str) -> None:
@@ -121,8 +122,10 @@ def show_portfolio(logged_name: Optional[str], base_currency: str = 'USD') -> No
                 return None
             wallets = portfolio['wallets']
             break
+
+    storage = RatesStorage()
     
-    rates = load_rates(config.get('data_path', 'data/'))
+    rates = storage.load_rates()
     total = 0
     info = f"Портфель пользователя '{logged_name}' (база: {base_currency}):\n"
     for cur in wallets.keys():
@@ -288,28 +291,92 @@ def get_rate(from_currency: str,
     if from_currency == to_currency:
         return 1
 
-    if rates is None:
-        rates = load_rates(config.get('data_path', 'data/'))
+    storage = RatesStorage()
 
-    FromCurrency = get_currency(from_currency)
-    ToCurrency = get_currency(to_currency)
+    if rates is None:
+        rates = storage.load_rates()
+
+    from_valuta = get_currency(from_currency)
+    to_valuta = get_currency(to_currency)
     
-    exchange = rates.get(f'{FromCurrency.code}_{ToCurrency.code}')
+    exchange = rates.get('pairs', {}).get(f'{from_valuta.code}_{to_valuta.code}')
     if exchange is None:
         print(f"Курс {from_currency}→{to_currency} недоступен. "
               "Повторите попытку позже.")
         return None
-    if (datetime.fromisoformat(exchange['updated_at']) < 
+    if (datetime.fromisoformat(exchange['updated_at'].replace('Z', '')) < 
         (datetime.now() - timedelta(seconds=config.get('rates_ttl_seconds', 300)))):
-        now_rate = exchange['rate']
+        print('Курсы валют устарели! Обновите курсы с помощью команды update-rate.')
+        return None
     else:
         now_rate = exchange['rate']
     
     if display:
-        info = f"Курс {from_currency}→{to_currency}: {exchange['rate']:.8f} "
-        info += f"(обновлено: {datetime.fromisoformat(exchange['updated_at'])})\n"
-        info += f"Обратный курс {to_currency}→{from_currency}: {1/exchange['rate']:.8f}"
+        info = f"Курс {from_currency} → {to_currency}: {exchange['rate']:.8f} "
+        info += "(обновлено: "
+        info += f"{datetime.fromisoformat(exchange['updated_at'].replace('Z', ''))})\n"
+        info += f"Обратный курс {to_currency} → {from_currency}: "
+        info += f"{1/exchange['rate']:.8f}"
         print(info)
 
     return now_rate
     
+
+def update_rates(source: Optional[str] = None) -> None:
+    updater = RatesUpdater()
+    updater.run_update(source)
+
+
+def show_rates(currency: Optional[str] = None,
+               top: Optional[int] = None,
+               base: str = 'USD') -> None:
+    
+    if currency is not None and len(currency) == 0:
+        raise ValueError("Параметр '--currency' пуст!")
+    
+    if not base:
+        raise ValueError("Параметр '--base' пуст!")
+
+    if currency is not None and not currency.isupper():
+        raise ValueError("Параметр '--currency' должен состоять из заглавных букв!")
+    
+    if not base.isupper():
+        raise ValueError("Параметр '--base' должен состоять из заглавных букв!")
+    
+    if currency is not None:
+        valuta = get_currency(currency)
+    else:
+        valuta = None
+    base_valuta = get_currency(base)
+    
+    if top is not None and top <= 0:
+        raise ValueError("Параметр '--top' не может быть отрицательным!")
+    
+    
+    storage = RatesStorage()
+    rates = storage.load_rates()
+    pairs = rates.get('pairs', {})
+
+    if not pairs:
+        raise ValueError("Локальный кэш курсов пуст. "\
+                         "Выполните 'update-rates', чтобы загрузить данные.")
+    
+    result = []
+    for rate_key, rate_value in pairs.items():
+        from_currency, to_currency = rate_key.split('_')
+        if to_currency == base_valuta.code:
+            result.append((from_currency, to_currency, rate_value['rate']))
+    
+    result = sorted(result, key=lambda x: x[2], reverse=True)
+
+    if valuta is not None:
+        result = [rate for rate in result if rate[0] == valuta.code]
+        if not result:
+            raise ValueError(f"Курс для '{valuta.code}' не найден в кеше.")
+
+    if top is not None:
+        result = result[:top]
+
+    info = f"Rates from cache (updated at {rates.get('last_refresh', '<unknown>')}):\n"
+    info += '\n'.join([f"- {rate[0]}_{rate[1]}: {rate[2]:.8f}" for rate in result])
+    print(info)

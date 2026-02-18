@@ -39,10 +39,9 @@ class SettingsLoader:
         fp = None
         try:
             fp = open(config_path, 'r')
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError, ValueError):
             self._config = {'data_path': 'data/',
                             'rates_ttl_seconds': 300,
-                            'log_format': 'string',
                             'log_path': 'logs/'}
             
         else:
