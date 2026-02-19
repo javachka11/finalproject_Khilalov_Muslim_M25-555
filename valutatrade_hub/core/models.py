@@ -1,7 +1,11 @@
 import hashlib
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
+
+from valutatrade_hub.core.currencies import get_currency
+from valutatrade_hub.infra.settings import config
+from valutatrade_hub.parser_service.storage import RatesStorage
 
 
 class User:
@@ -277,7 +281,7 @@ class Portfolio:
                   f'пользователя {self._user_id}!')
     
     
-    def get_total_value(self, base_currency: str = 'USD') -> float:
+    def get_total_value(self, base_currency: str = 'USD') -> Optional[float]:
         """
         Возвращает общую стоимость всех валют пользователя
         в указанной базовой валюте.
@@ -288,13 +292,30 @@ class Portfolio:
         :rtype: float
         """
 
-        exchange_rates = {'USD': 1,
-                          'EUR': 0.84,
-                          'RUB': 77.18,
-                          'BTC': 0.000014}
-        
-        total = sum((exchange_rates[base_currency] / exchange_rates[cur])*
-                         self._wallets[cur].balance for cur in self._wallets.keys())
+        storage = RatesStorage()
+    
+        rates = storage.load_rates()
+        pairs = rates.get('pairs', {})
+        total = 0
+
+        base_valuta = get_currency(base_currency)
+        now_timestamp = datetime.now()
+
+        if (datetime.fromisoformat(rates\
+                                   .get('last_refresh', '2000-01-01T00:00:00Z')\
+                                   .replace('Z', '')) < 
+            (now_timestamp - timedelta(seconds=config\
+                                      .get('rates_ttl_seconds', 300)))):
+            print("Курсы валют устарели! "\
+                  "Обновите курсы с помощью команды update-rates.")
+            return None
+            
+        for rate_key, rate_value in pairs.items():
+            from_currency, to_currency = rate_key.split('_')
+            if (to_currency == base_valuta.code and
+                from_currency in self._wallets.keys()):
+                total += rate_value.get('rate', 0) * \
+                         self._wallets[from_currency].balance
         
         return total
 

@@ -382,19 +382,18 @@ def show_rates(currency: Optional[str] = None,
                          "Выполните 'update-rates', чтобы загрузить данные.")
     
     result = []
-    now_timestamp = datetime.now()
+
+    if (datetime.fromisoformat(rates.get('last_refresh', '2000-01-01T00:00:00Z')\
+                                    .replace('Z', '')) < 
+        (datetime.now() - timedelta(seconds=config\
+                                          .get('rates_ttl_seconds', 300)))):
+        print("Курсы валют устарели! "\
+              "Обновите курсы с помощью команды update-rates.")
+        return None
 
     for rate_key, rate_value in pairs.items():
         from_currency, to_currency = rate_key.split('_')
         if to_currency == base_valuta.code:
-            if (datetime.fromisoformat(rates\
-                                       .get('last_refresh', '2000-01-01T00:00:00Z')\
-                                       .replace('Z', '')) < 
-               (now_timestamp - timedelta(seconds=config\
-                                          .get('rates_ttl_seconds', 300)))):
-                print("Курсы валют устарели! "\
-                      "Обновите курсы с помощью команды update-rates.")
-                return None
             result.append((from_currency, to_currency, rate_value['rate']))
     
     result = sorted(result, key=lambda x: x[2], reverse=True)
