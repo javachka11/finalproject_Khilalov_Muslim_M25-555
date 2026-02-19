@@ -35,18 +35,20 @@ def show_info(key: str = 'all') -> None:
                     "<пароль> - залогиниться под конкретным пользователем"
     
     info['show-portfolio'] = "<command> show-portfolio [--base <код_валюты>] - "\
-                             "отобразить портфель пользователя (в базовой валюте)"
+                             "отобразить портфель пользователя в базовой валюте "\
+                             "(по умолчанию - в USD)"
     
     info['buy'] = "<command> buy --currency <код_валюты> --amount "\
-                  "<количество_валюты> - купить валюту"
+                  "<количество_валюты> - купить валюту (за USD)"
     
     info['sell'] = "<command> sell --currency <код_валюты> --amount "\
-                   "<количество_валюты> - продать валюту"
+                   "<количество_валюты> - продать валюту (за USD)"
     
     info['get-rate'] = "<command> get-rate --from <исх_валюта> --to "\
                        "<цел_валюта> - получить текущий курс валюты"
     
-    info['update-rates'] = "<command> update-rates [ctypto|fiat] - обновить курс валют"
+    info['update-rates'] = "<command> update-rates [--source "\
+                           "coingecko|exchangerate] - обновить курс валют"
     
     info['show-rates'] = "<command> show-rates [--currency <код_валюты>] [--top "\
                          "<топ_курсов>] [--base <баз_валюта>] - отобразить курсы валют"
@@ -86,15 +88,18 @@ def run():
 
         try:
             match args:
-                case ['register', '--username', username, '--password', password]:
+                case ['register', '--username', username, '--password', password] |\
+                     ['register', '--password', password, '--username', username]:
                     register(username, password)
-                case ['login', '--username', username, '--password', password]:
+                case ['login', '--username', username, '--password', password] |\
+                     ['login', '--password', password, '--username', username]:
                     logged_username = login(username, password)
                 case ['show-portfolio', '--base', currency]:
                     show_portfolio(logged_username, currency)
                 case ['show-portfolio']:
                     show_portfolio(logged_username)
-                case ['buy', '--currency', currency, '--amount', amount]:
+                case ['buy', '--currency', currency, '--amount', amount] |\
+                     ['buy', '--amount', amount, '--currency', currency]:
                     result = buy(logged_username, currency, float(amount))
                     if result is not None:
                         info = f"Покупка выполнена: {float(amount):.8f} {currency} "\
@@ -106,7 +111,8 @@ def run():
                                f"Оценочная стоимость покупки: "\
                                f"{result['rate']*float(amount):.8f} USD"
                         print(info)
-                case ['sell', '--currency', currency, '--amount', amount]:
+                case ['sell', '--currency', currency, '--amount', amount] |\
+                     ['sell', '--amount', amount, '--currency', currency]:
                     result = sell(logged_username, currency, float(amount))
                     if result is not None:
                         info = f"Продажа выполнена: {float(amount):.8f} {currency} "\
@@ -118,30 +124,52 @@ def run():
                                f"Оценочная выручка: "\
                                f"{result['rate']*float(amount):.8f} USD"
                         print(info)
-                case ['get-rate', '--from', from_currency, '--to', to_currency]:
+                case ['get-rate', '--from', from_currency, '--to', to_currency] |\
+                     ['get-rate', '--to', to_currency, '--from', from_currency]:
                     get_rate(from_currency, to_currency, None, True)
-                case ['update-rates', 'crypto']:
-                    update_rates('crypto')
-                case ['update-rates', 'fiat']:
-                    update_rates('fiat')
+                case ['update-rates', '--source', 'coingecko']:
+                    update_rates('coingecko')
+                case ['update-rates', '--source', 'exchangerate']:
+                    update_rates('exchangerate')
                 case ['update-rates']:
                     update_rates()
                 case ['show-rates', '--currency', currency,
                                     '--top', top,
-                                    '--base', base]:
+                                    '--base', base] |\
+                     ['show-rates', '--currency', currency,
+                                    '--base', base,
+                                    '--top', top] |\
+                     ['show-rates', '--top', top,
+                                    '--currency', currency,
+                                    '--base', base] |\
+                     ['show-rates', '--base', base,
+                                    '--currency', currency,
+                                    '--top', top] |\
+                     ['show-rates', '--top', top,
+                                    '--base', base,
+                                    '--currency', currency] |\
+                     ['show-rates', '--base', base,
+                                    '--top', top,
+                                    '--currency', currency]:
                     show_rates(currency=currency,
                                top=int(top),
                                base=base)
                 case ['show-rates', '--currency', currency,
-                                    '--top', top]:
+                                    '--top', top] |\
+                     ['show-rates', '--top', top,
+                                    '--currency', currency]:
                     show_rates(currency=currency,
                                top=int(top))
                 case ['show-rates', '--currency', currency,
-                                    '--base', base]:
+                                    '--base', base] |\
+                     ['show-rates', '--base', base,
+                                    '--currency', currency]:
                     show_rates(currency=currency,
                                base=base)
                 case ['show-rates', '--top', top,
-                                    '--base', base]:
+                                    '--base', base] |\
+                     ['show-rates', '--base', base,
+                                    '--top', top]:
                     show_rates(top=int(top),
                                base=base)
                 case ['show-rates', '--currency', currency]:
@@ -160,7 +188,7 @@ def run():
                     print('Выход из программы.')
                     return None
                 case _:
-                    print('Некорректная команда!')
+                    raise ValueError('Некорректно введена команда! Введите info.')
         except ValueError as e:
             print(f'Ошибка валидации: {e}')
         except InsufficientFundsError as e:

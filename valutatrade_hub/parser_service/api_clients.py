@@ -50,7 +50,7 @@ class CoinGeckoClient(BaseApiClient):
         params = {
             'ids': ','.join([self.config.CRYPTO_ID_MAP[code]
                              for code in self.config.CRYPTO_CURRENCIES]),
-            'vs_currencies': 'usd'
+            'vs_currencies': self.config.BASE_CURRENCY
         }
         
         try:
@@ -71,9 +71,9 @@ class CoinGeckoClient(BaseApiClient):
         for code in self.config.CRYPTO_CURRENCIES:
             valuta = self.config.CRYPTO_ID_MAP[code]
             if (valuta in data and
-                'usd' in data[valuta]):
-                rates[f'{code}_USD'] = {
-                    'rate': float(data[valuta]['usd']),
+                self.config.BASE_CURRENCY.lower() in data[valuta]):
+                rates[f'{code}_{self.config.BASE_CURRENCY}'] = {
+                    'rate': float(data[valuta][self.config.BASE_CURRENCY.lower()]),
                     'timestamp': now,
                     'source': 'CoinGecko',
                     'meta': {
@@ -97,7 +97,7 @@ class ExchangeRateApiClient(BaseApiClient):
         """
 
         url = f"{self.config.EXCHANGERATE_API_URL}/"\
-              f"{self.config.EXCHANGERATE_API_KEY}/latest/USD"
+              f"{self.config.EXCHANGERATE_API_KEY}/latest/{self.config.BASE_CURRENCY}"
         
         try:
             response = requests.get(url,
@@ -123,7 +123,7 @@ class ExchangeRateApiClient(BaseApiClient):
             
         for fiat_currency in self.config.FIAT_CURRENCIES:
             if fiat_currency in conversion_rates:
-                rates[f"{fiat_currency}_USD"] = {
+                rates[f"{fiat_currency}_{self.config.BASE_CURRENCY}"] = {
                     'rate': 1 / float(conversion_rates[fiat_currency]),
                     'timestamp': last_update,
                     'source': 'ExchangeRate-API',

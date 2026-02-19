@@ -1,36 +1,71 @@
 {
     "pairs": {
         "BTC_USD": {
-            "rate": 67339.0,
-            "updated_at": "2026-02-18T05:41:16.485955Z",
+            "rate": 66855.0,
+            "updated_at": "2026-02-19T06:43:49.339417Z",
             "source": "CoinGecko"
         },
         "ETH_USD": {
-            "rate": 1989.91,
-            "updated_at": "2026-02-18T05:41:16.485955Z",
+            "rate": 1967.66,
+            "updated_at": "2026-02-19T06:43:49.339417Z",
             "source": "CoinGecko"
         },
         "SOL_USD": {
-            "rate": 84.76,
-            "updated_at": "2026-02-18T05:41:16.485955Z",
+            "rate": 81.67,
+            "updated_at": "2026-02-19T06:43:49.339417Z",
             "source": "CoinGecko"
         },
         "EUR_USD": {
-            "rate": 1.1838552124239354,
-            "updated_at": "2026-02-18T02:00:01Z",
+            "rate": 1.181002260639097,
+            "updated_at": "2026-02-19T03:00:01Z",
             "source": "ExchangeRate-API"
         },
         "GBP_USD": {
-            "rate": 1.355346124159382,
-            "updated_at": "2026-02-18T02:00:01Z",
+            "rate": 1.3521174172274957,
+            "updated_at": "2026-02-19T03:00:01Z",
             "source": "ExchangeRate-API"
         },
         "RUB_USD": {
-            "rate": 0.012982222226670797,
-            "updated_at": "2026-02-18T02:00:01Z",
+            "rate": 0.013043499368654196,
+            "updated_at": "2026-02-19T03:00:01Z",
+            "source": "ExchangeRate-API"
+        },
+        "BTC_RUB": {
+            "rate": 5130496.0,
+            "updated_at": "2026-02-19T06:34:59.775900Z",
+            "source": "CoinGecko"
+        },
+        "ETH_RUB": {
+            "rate": 151127.0,
+            "updated_at": "2026-02-19T06:34:59.775900Z",
+            "source": "CoinGecko"
+        },
+        "SOL_RUB": {
+            "rate": 6276.91,
+            "updated_at": "2026-02-19T06:34:59.775900Z",
+            "source": "CoinGecko"
+        },
+        "EUR_RUB": {
+            "rate": 90.6021965596534,
+            "updated_at": "2026-02-19T03:00:01Z",
+            "source": "ExchangeRate-API"
+        },
+        "GBP_RUB": {
+            "rate": 103.75079888115138,
+            "updated_at": "2026-02-19T03:00:01Z",
+            "source": "ExchangeRate-API"
+        },
+        "RUB_RUB": {
+            "rate": 1.0,
+            "updated_at": "2026-02-19T03:00:01Z",
+            "source": "ExchangeRate-API"
+        },
+        "USD_RUB": {
+            "rate": 76.71176551361212,
+            "updated_at": "2026-02-19T03:00:01Z",
             "source": "ExchangeRate-API"
         }
     },
     "source": "ParserService",
-    "last_refresh": "2026-02-18T05:41:16.690495"
+    "last_refresh": "2026-02-19T06:43:49.524974"
 }

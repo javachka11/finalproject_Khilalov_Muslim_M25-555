@@ -43,7 +43,11 @@
         "wallets": {
             "USD": {
                 "currency_code": "USD",
-                "balance": 100
+                "balance": 74.0355555466584
+            },
+            "RUB": {
+                "currency_code": "RUB",
+                "balance": 2000.0
             }
         }
     }

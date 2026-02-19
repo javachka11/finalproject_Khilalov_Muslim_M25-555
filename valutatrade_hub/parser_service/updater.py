@@ -40,7 +40,7 @@ class RatesUpdater:
         
         all_rates = {}
         
-        if source is None or source == 'crypto':
+        if source is None or source == 'coingecko':
             try:
                 coingecko_rates = self.coingecko.fetch_rates()
                 all_rates.update(coingecko_rates)
@@ -50,7 +50,7 @@ class RatesUpdater:
             except ApiRequestError as e:
                 print(f"ERROR: Failed to fetch from CoinGecko: {e.reason}")
             
-        if source is None or source == 'fiat':
+        if source is None or source == 'exchangerate':
             try:
                 exchangerate_rates = self.exchangerate.fetch_rates()
                 all_rates.update(exchangerate_rates)

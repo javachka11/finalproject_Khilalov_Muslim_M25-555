@@ -133,8 +133,8 @@ def show_portfolio(logged_name: Optional[str], base_currency: str = 'USD') -> No
         if exchange_rate is None:
             return None
         base_balance = exchange_rate*wallets[cur]['balance']
-        info += f"- {cur}: {wallets[cur]['balance']:12.8f}  →  "
-        info += f"{base_balance:12.8f} {base_currency}\n"
+        info += f"- {cur}: {wallets[cur]['balance']:20.8f}  →  "
+        info += f"{base_balance:20.8f} {base_currency}\n"
         total += base_balance
     info += "---------------------------------\n"
     info += f"ИТОГО: {total:.8f} {base_currency}"
@@ -304,13 +304,15 @@ def get_rate(from_currency: str,
         print(f"Курс {from_currency}→{to_currency} недоступен. "
               "Повторите попытку позже.")
         return None
+    
+    now_timestamp = datetime.now()
     if (datetime.fromisoformat(rates.get('last_refresh', '2000-01-01T00:00:00Z')\
                                .replace('Z', '')) < 
-        (datetime.now() - timedelta(seconds=config.get('rates_ttl_seconds', 300)))):
-        print('Курсы валют устарели! Обновите курсы с помощью команды update-rate.')
+        (now_timestamp - timedelta(seconds=config.get('rates_ttl_seconds', 300)))):
+        print('Курсы валют устарели! Обновите курсы с помощью команды update-rates.')
         return None
-    else:
-        now_rate = exchange['rate']
+    
+    now_rate = exchange['rate']
     
     if display:
         info = f"Курс {from_currency} → {to_currency}: {exchange['rate']:.8f} "
@@ -380,9 +382,19 @@ def show_rates(currency: Optional[str] = None,
                          "Выполните 'update-rates', чтобы загрузить данные.")
     
     result = []
+    now_timestamp = datetime.now()
+
     for rate_key, rate_value in pairs.items():
         from_currency, to_currency = rate_key.split('_')
         if to_currency == base_valuta.code:
+            if (datetime.fromisoformat(rates\
+                                       .get('last_refresh', '2000-01-01T00:00:00Z')\
+                                       .replace('Z', '')) < 
+               (now_timestamp - timedelta(seconds=config\
+                                          .get('rates_ttl_seconds', 300)))):
+                print("Курсы валют устарели! "\
+                      "Обновите курсы с помощью команды update-rates.")
+                return None
             result.append((from_currency, to_currency, rate_value['rate']))
     
     result = sorted(result, key=lambda x: x[2], reverse=True)

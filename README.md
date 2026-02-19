@@ -1,14 +1,13 @@
 # finalproject_Khilalov_Muslim_M25-555
 
 # Проект "Платформа для отслеживания и симуляции торговли валютами"
-### Домашнее задание №3. Платформа для отслеживания и симуляции торговли валютами.
-#### Выполнил студент Хилалов Муслим, группа М25-555
+## Выполнил студент Хилалов Муслим, группа М25-555
 
-#### Описание идеи
+## Описание идеи
 
 Программа эмулирует работу настоящей платформы для отслеживания и торговли фиатными и криптовалютами. Каждому новому пользователю при регистрации выдаётся 100 USD для возможности начального развития на платформе. Помимо Core Service, который отвечает за работу с пользователями, в программе также есть Parser Service, который отслеживает текущие курсы валют на фондовых рынках и даёт возможность синхронизировать с ними платформу.
 
-#### Структура каталогов
+## Структура каталогов
 
 <pre>
 ├── data/
@@ -49,32 +48,31 @@
 └── .gitignore               
 </pre>
 
-#### Сборка проекта
+## Сборка проекта
 
 |Команда|Описание|
 |:-|-:|
 |`make` `install` \| `poetry` `install`|Установить пакет|
 |`make` `project` \| `poetry` `run` `project`|Запустить проект|
 
-#### Интерфейс для работы с платформой:
+## Интерфейс для работы с платформой:
 
 |Команда|Описание|
 |:-|-:|
 |`register` `--username` `<имя>` `--password` `<пароль>`|Зарегистрировать пользователя|
 |`login` `--username` `<имя>` `--password` `<пароль>`|Залогиниться под конкретным пользователем|
-|`show-portfolio`|Отобразить портфель пользователя (в долларах)|
-|`show-portfolio` `--base` `<код_валюты>`|Отобразить портфель пользователя (в базовой валюте)|
-|`buy` `--currency` `<код_валюты>` `--amount` `<количество_валюты>`|Купить валюту|
-|`sell` `--currency` `<код_валюты>` `--amount` `<количество_валюты>`|Продать валюту|
+|`show-portfolio` `[--base <код_валюты>]`|Отобразить портфель пользователя в базовой валюте (по умолчанию - в USD)|
+|`buy` `--currency` `<код_валюты>` `--amount` `<количество_валюты>`|Купить валюту (за USD)|
+|`sell` `--currency` `<код_валюты>` `--amount` `<количество_валюты>`|Продать валюту (за USD)|
 |`get-rate` `--from` `<исходная_валюта>` `--to` `<целевая_валюта>`|Отобразить текущий курс валюты|
-|`update-rates` `[crypto\|fiat]`|Обновить текущие курсы валют|
-|`show-rates` `[--currency <код_валюты>]` `[--top <топ_курсов>]` `[--base <баз_валюта>]`|Отобразить курсы валют|
+|`update-rates` `[--source coingecko\|exchangerate]`|Обновить текущие курсы валют|
+|`show-rates` `[--currency <код_валюты>]` `[--top <топ_курсов>]` `[--base <баз_валюта>]`|Отобразить текущие курсы валют (форматированный вывод)|
 |`info`|Отобразить справку|
 |`help` `<команда>`|Отобразить справку для команды|
 |`quit`|Выйти из программы|
 
 
-#### Пример работы с платформой:
+## Пример работы с платформой:
 
 <pre>&gt; register --username john --password qwerty
 Пользователь &apos;john&apos; зарегистрирован (id=2). Войдите: login --username john --password ******
@@ -136,11 +134,11 @@ Rates from cache (updated at 2026-02-18T04:28:24.147427):
 <pre>john&gt; info
 &lt;command&gt; register --username &lt;имя&gt; --password &lt;пароль&gt; - зарегистрировать пользователя
 &lt;command&gt; login --username &lt;имя&gt; --password &lt;пароль&gt; - залогиниться под конкретным пользователем
-&lt;command&gt; show-portfolio [--base &lt;код_валюты&gt;] - отобразить портфель пользователя (в базовой валюте)
-&lt;command&gt; buy --currency &lt;код_валюты&gt; --amount &lt;количество_валюты&gt; - купить валюту
-&lt;command&gt; sell --currency &lt;код_валюты&gt; --amount &lt;количество_валюты&gt; - продать валюту
+&lt;command&gt; show-portfolio [--base &lt;код_валюты&gt;] - отобразить портфель пользователя в базовой валюте (по умолчанию - в USD)
+&lt;command&gt; buy --currency &lt;код_валюты&gt; --amount &lt;количество_валюты&gt; - купить валюту (за USD)
+&lt;command&gt; sell --currency &lt;код_валюты&gt; --amount &lt;количество_валюты&gt; - продать валюту (за USD)
 &lt;command&gt; get-rate --from &lt;исх_валюта&gt; --to &lt;цел_валюта&gt; - получить текущий курс валюты
-&lt;command&gt; update-rates [ctypto|fiat] - обновить курс валют
+&lt;command&gt; update-rates [--source coingecko|exchangerate] - обновить курс валют
 &lt;command&gt; show-rates [--currency &lt;код_валюты&gt;] [--top &lt;топ_курсов&gt;] [--base &lt;баз_валюта&gt;] - отобразить курсы валют
 &lt;command&gt; info - отобразить справку
 &lt;command&gt; help &lt;команда&gt; - отобразить справку для команды
@@ -148,25 +146,25 @@ Rates from cache (updated at 2026-02-18T04:28:24.147427):
 </pre>
 
 
-#### Описание кэша/TTL
+## Описание кэша/TTL
 
 Платформа не даёт возможность проводить операции с конкретной валютой, если после последнего обновления её курса прошло как минимум RATES_TTL_SECONDS секунд (задаётся в config.json). Parser Service предоставляет пользователю возможность вручную обновить кэш валют с помощью команды `update-rates`. Помимо кэша, Parser Service заполняет исторические данные для дальнейшего возможного анализа.
 
-#### Где хранить ExchangeRate-API ключ!!!
+## Где хранить ExchangeRate-API ключ!!!
 
 1) Введите в терминале команду `export EXCHANGERATE_API_KEY="<ВАШ API-КЛЮЧ>"`
 2) Теперь ваш ключ записан в переменную окружения, можете проверить его с помощью команды терминала `echo $EXCHANGERATE_API_KEY`
 3) Готово! Теперь можете запускать платформу с помощью команды `make project`.
 
 
-#### Пример работы с платформой, Core Service (asciinema):
+## Пример работы с платформой, Core Service (asciinema):
 
 [![asciicast](https://asciinema.org/a/3UedtysJZ7u3IyUv.svg)](https://asciinema.org/a/3UedtysJZ7u3IyUv)
 
-#### Пример работы с платформой, Parser Service (asciinema):
+## Пример работы с платформой, Parser Service (asciinema):
 
-[![asciicast](https://asciinema.org/a/DerjVbK1JH4MqnF7.svg)](https://asciinema.org/a/DerjVbK1JH4MqnF7)
+[![asciicast](https://asciinema.org/a/EwfdhauQiCyV8Swx.svg)](https://asciinema.org/a/EwfdhauQiCyV8Swx)
 
-#### Пример работы с платформой, Обработка ошибок (asciinema):
+## Пример работы с платформой, Обработка ошибок (asciinema):
 
-[![asciicast](https://asciinema.org/a/AigQ1wKeYjc0Q26w.svg)](https://asciinema.org/a/AigQ1wKeYjc0Q26w)
+[![asciicast](https://asciinema.org/a/76TsTs4Zv6C1ErjH.svg)](https://asciinema.org/a/76TsTs4Zv6C1ErjH)
